@@ -10,3 +10,5 @@ Usage:
 - Click Load unpacked, select the folder.
 - Go to the extension’s Options page, enter your OpenAI key, and optionally change the prompt.
 - On any webpage, click the extension icon and press Summarize Page to see the summary.
+
+Want to help improve it? Submit a pull request!
