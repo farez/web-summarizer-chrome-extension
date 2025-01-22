@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Extension Settings</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 10px;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
+      input, textarea {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Settings</h1>
+    <label>OpenAI API Key:
+      <input type="text" id="openAiKey" placeholder="sk-..." />
+    </label>
+    <label>Summarization Prompt:
+      <textarea id="summarizationPrompt" rows="4">Summarize the following text by first telling me what this text is about and then a bullet list of the key points:</textarea>
+    </label>
+    <button id="saveBtn">Save</button>
+
+    <script src="options.js"></script>
+  </body>
+</html>

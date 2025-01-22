@@ -1,0 +1,17 @@
+{
+    "name": "Page Summarizer",
+    "version": "1.0",
+    "manifest_version": 3,
+    "description": "Summarizes the current web page.",
+    "permissions": ["storage", "activeTab", "scripting"],
+    "options_page": "options.html",
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "icons": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  }
+
