@@ -4,6 +4,10 @@
     "manifest_version": 3,
     "description": "Summarizes the current web page.",
     "permissions": ["storage", "activeTab", "scripting"],
+    "host_permissions": [
+        "https://api.openai.com/*",
+        "https://api.anthropic.com/*"
+    ],
     "options_page": "options.html",
     "action": {
       "default_popup": "popup.html"
