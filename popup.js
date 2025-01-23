@@ -40,6 +40,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         summarizationPrompt
       } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "summarizationPrompt"]);
 
+      // Set default summarization prompt if empty
+      if (!summarizationPrompt) {
+        finalPrompt = "Summarize the following text by first telling me what this text is about and then bullet points of the key points.";
+      } else {
+        finalPrompt = summarizationPrompt;
+      }
+
+      // Append markdown format instruction
+      finalPrompt += " Return the summary in Markdown format.";
+
       // Determine which key to use
       let usedKey;
       if (llm === "claude") {
@@ -58,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (llm === "claude") {
           // --- Call Claude (Anthropic) ---
-          const claudePrompt = `Human: ${summarizationPrompt || "Summarize the following text:"}\n${pageText}\n\nAssistant:`;
+          const claudePrompt = `Human: ${finalPrompt}\n${pageText}\n\nAssistant:`;
           const response = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -69,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
             body: JSON.stringify({
               max_tokens: 500,
-              system: "You are a helpful assistant that summarizes web pages into a concise and informative summary. You are to return the summary in markdown format.",
+              system: "You are a helpful assistant that summarizes web pages into a concise and informative summary.",
               messages: [
                 { role: "user", content: claudePrompt },
                 { role: "assistant", content: "Page summary: <summary>" }
@@ -94,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           body: JSON.stringify({
             model: model || "gpt-4o-mini",
             messages: [
-              { role: "system", content: summarizationPrompt || "Summarize the following text and return the summary in markdown format:" },
+              { role: "system", content: finalPrompt },
               { role: "user", content: pageText }
             ]
           })

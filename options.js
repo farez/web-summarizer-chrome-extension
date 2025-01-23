@@ -3,16 +3,12 @@ const MODEL_OPTIONS = {
   openai: [
     { value: 'gpt-4o-mini', label: 'GPT-4o Mini (default)' },
     { value: 'gpt-4o', label: 'GPT-4o' },
-    { value: 'o1', label: 'o1' },
-    { value: 'o1-mini', label: 'o1 Mini' },
-    { value: 'o1-preview', label: 'o1 Preview' },
   ],
   claude: [
     { value: 'claude-3-5-haiku-latest', label: 'Claude 3.5 Haiku (default)' },
     { value: 'claude-3-5-sonnet-latest', label: 'Claude 3.5 Sonnet' },
-    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
+    { value: 'claude-3-haiku-latest', label: 'Claude 3 Haiku' },
     { value: 'claude-3-sonnet-latest', label: 'Claude 3 Sonnet' },
-    { value: 'claude-3-opus-latest', label: 'Claude 3 Opus' },
   ]
 };
 
