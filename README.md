@@ -1,6 +1,6 @@
 This is a simple web page summarizer chrome extension.
 
-You'll need your own [OpenAI API key](https://platform.openai.com/settings/organization/api-keys). 
+You'll need your own API keys for [OpenAI](https://platform.openai.com/settings/organization/api-keys) or [Claude](https://console.anthropic.com/settings/keys)
 
 Usage:
 - Clone the repo / download all the files.
