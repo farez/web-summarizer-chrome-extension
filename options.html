@@ -46,6 +46,9 @@
       button:hover {
         background: #1976D2;
       }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -56,24 +59,30 @@
       <select id="llmSelect">
         <option value="openai" selected>OpenAI</option>
         <option value="claude">Claude</option>
+        <option value="deepseek">DeepSeek</option>
       </select>
     </label>
 
     <label>
       Model:
       <select id="modelSelect">
-        <!-- For OpenAI or Claude, we populate dynamically in options.js -->
+        <!-- For OpenAI, Claude, or DeepSeek, we populate dynamically in options.js -->
       </select>
     </label>
 
-    <label>
+    <label id="openai-secret-input">
       OpenAI API Key:
-      <input type="text" id="openAiKey" placeholder="sk-..." />
+      <input type="text" id="openAiKey" placeholder="OpenAI API Key" />
     </label>
 
-    <label>
+    <label id='claude-secret-input'>
       Claude API Key:
-      <input type="text" id="claudeKey" placeholder="Use if LLM=Claude" />
+      <input type="text" id="claudeKey" placeholder="Claude API Key" />
+    </label>
+
+    <label id='deepseek-secret-input'>
+      Deepseek API Key:
+      <input type="text" id="deepSeekKey" placeholder="Deepseek API Key" />
     </label>
 
     <label>

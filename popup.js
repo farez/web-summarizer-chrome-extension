@@ -37,8 +37,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         model,
         openAiKey,
         claudeKey,
+        deepSeekKey,
         summarizationPrompt
-      } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "summarizationPrompt"]);
+      } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
 
       // Set default summarization prompt if empty
       if (!summarizationPrompt) {
@@ -48,12 +49,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // Append markdown format instruction
-      finalPrompt += " Return the summary in Markdown format.";
+      finalPrompt += " Summary MUST be returned in valid HTML5 format";
 
       // Determine which key to use
       let usedKey;
       if (llm === "claude") {
         usedKey = claudeKey;
+      } else if (llm === "deepseek") {
+        usedKey = deepSeekKey;
       } else {
         usedKey = openAiKey;
       }
@@ -90,9 +93,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             })
           });
 
+
+          
           if (!response.ok) throw new Error(`Claude HTTP error! status: ${response.status}`);
           const data = await response.json();
           rawSummary = data.content[0].text || "No summary available.";
+        } else if (llm === 'deepseek') {
+          const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            mode: "cors", // explicitly enable cors, not the most secure option
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${usedKey}`,
+              // "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({
+              model: model || "deepseek-chat", // chat is v3
+              messages: [
+                { role: "system", content: "You are a helpful assistant that summarizes web pages into a concise and informative summary." },
+                { role: "user", content: finalPrompt },
+                { role: "user", content: pageText }
+              ],
+              temperature: 0.7,
+            })
+          })
+
+          if (!response.ok) throw new Error(`DeepSeek HTTP error! status: ${response.status}`);
+          const data = await response.json();
+          rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
         } else {
         // Call OpenAI
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -116,7 +144,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
         // Render and cache the new summary
-        summaryDiv.innerHTML = marked.parse(rawSummary);
+        try {
+          // const parsedHtml = marked.parse(rawSummary);
+          console.info('parsed html >> ', rawSummary);
+          summaryDiv.innerHTML = rawSummary;
+        } catch (error) {
+          console.error('Error parsing markdown:', error);
+          summaryDiv.textContent = `there was an error with markdown parsing`; // Fallback to plain text if markdown parsing fails
+        }
 
         // Remove any old entry for this URL
         const idx = summaries.findIndex(s => s.url === currentUrl);

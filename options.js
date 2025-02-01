@@ -9,8 +9,20 @@ const MODEL_OPTIONS = {
     { value: 'claude-3-5-sonnet-latest', label: 'Claude 3.5 Sonnet' },
     { value: 'claude-3-haiku-latest', label: 'Claude 3 Haiku' },
     { value: 'claude-3-sonnet-latest', label: 'Claude 3 Sonnet' },
+  ],
+  deepseek: [
+    { value: 'deepseek-chat', label: 'Deepseek V3' },
+    { value: 'deepseek-reasoner', label: 'Deepseek R1' },
   ]
 };
+
+// constants
+const LlmOpenAi = 'openai'
+const LlmDeepseek = 'deepseek'
+const LlmClaude = 'claude'
+const ModelDeepSeekChat = 'deepseek-chat'
+const ModelGpt4oMini = 'gpt-4o-mini'
+const ModelClaudeInstant = 'claude-instant-v1'
 
 async function loadSettings() {
   const {
@@ -18,31 +30,43 @@ async function loadSettings() {
     model,
     openAiKey,
     claudeKey,
+    deepSeekKey,
     summarizationPrompt
   } = await chrome.storage.sync.get([
-    'llm', 'model', 'openAiKey', 'claudeKey', 'summarizationPrompt'
+    'llm', 'model', 'openAiKey', 'claudeKey', 'deepSeekKey', 'summarizationPrompt'
   ]);
 
+  const DEFAULT_LLM = LlmDeepseek
   // Set LLM dropdown
   const llmSelect = document.getElementById('llmSelect');
-  llmSelect.value = llm || 'openai';
+  llmSelect.value = llm || DEFAULT_LLM;
 
   // Populate models for selected LLM
   updateModelOptions(llmSelect.value);
   const modelSelect = document.getElementById('modelSelect');
-  modelSelect.value = model || (llmSelect.value === 'openai' ? 'gpt-4o-mini' : 'claude-instant-v1');
+  let llmModelDefault = '';
+  if (llmSelect.value === LlmOpenAi) llmModelDefault = ModelGpt4oMini;
+  if (llmSelect.value === LlmClaude) llmModelDefault = ModelClaudeInstant;
+  if (llmSelect.value === LlmDeepseek) llmModelDefault = ModelDeepSeekChat;
+  modelSelect.value = model || llmModelDefault
 
-  // Keys
+  // API secret keys
   document.getElementById('openAiKey').value = openAiKey || '';
   document.getElementById('claudeKey').value = claudeKey || '';
+  document.getElementById('deepSeekKey').value = deepSeekKey || '';
 
   // Prompt
   document.getElementById('summarizationPrompt').value = summarizationPrompt || 'Summarize the following text:';
 }
 
 function updateModelOptions(llmValue) {
+  console.log(`llm selected >> ${llmValue}`)
   const modelSelect = document.getElementById('modelSelect');
   modelSelect.innerHTML = ''; // Clear existing
+  // Hide/show API key inputs based on selected LLM
+  document.getElementById('openai-secret-input').classList.toggle('hidden', llmValue !== LlmOpenAi);
+  document.getElementById('claude-secret-input').classList.toggle('hidden', llmValue !== LlmClaude);
+  document.getElementById('deepseek-secret-input').classList.toggle('hidden', llmValue !== LlmDeepseek);
 
   const optionsForLLM = MODEL_OPTIONS[llmValue] || [];
   optionsForLLM.forEach((m) => {
@@ -67,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const model = document.getElementById('modelSelect').value;
     const openAiKey = document.getElementById('openAiKey').value.trim();
     const claudeKey = document.getElementById('claudeKey').value.trim();
+    const deepSeekKey = document.getElementById('deepSeekKey').value.trim();
     const summarizationPrompt = document.getElementById('summarizationPrompt').value.trim();
 
     await chrome.storage.sync.set({
@@ -74,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       model,
       openAiKey,
       claudeKey,
+      deepSeekKey,
       summarizationPrompt
     });
     alert('Settings saved.');
