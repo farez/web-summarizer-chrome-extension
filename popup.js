@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const summaryDiv = document.getElementById("summary");
     const cachedMsgDiv = document.getElementById("cachedMsg");
     const summarizeBtn = document.getElementById("summarizeBtn");
+    const errorMessages = document.getElementById("error-messages");
 
     // Get user settings from storage
     const {
@@ -12,6 +13,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       deepSeekKey,
       summarizationPrompt
     } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
+
+    // Disable summarize button if API key is not set for selected LLM
+    if ((llm === 'openai' && !openAiKey) || 
+        (llm === 'claude' && !claudeKey) ||
+        (llm === 'deepseek' && !deepSeekKey)) {
+      summarizeBtn.disabled = true;
+      errorMessages.textContent = `Please set ${llm} API key in options first`;
+    }
 
     // Get the current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

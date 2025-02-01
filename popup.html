@@ -42,6 +42,12 @@
         transition: all 0.2s ease;
         display: block;
       }
+      #error-messages {
+        margin-top: 10px;
+        font-size: 10px;
+        color: darkred;
+        text-align: center;
+      }
       button:hover {
         background-color: #e0e0e0;
         border-color: #ccc;
@@ -53,6 +59,7 @@
     <div id="cachedMsg"></div>
     <p id="model-selected">model: <span>???</span></p>
     <button id="summarizeBtn">Summarize this page</button>
+    <div id="error-messages"></div>
     <div id="summary"></div>
 
     <!-- Include marked.js for Markdown support -->
