@@ -3,6 +3,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cachedMsgDiv = document.getElementById("cachedMsg");
     const summarizeBtn = document.getElementById("summarizeBtn");
 
+    // Get user settings from storage
+    const {
+      llm,
+      model,
+      openAiKey,
+      claudeKey,
+      deepSeekKey,
+      summarizationPrompt
+    } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
+
     // Get the current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const currentUrl = tab.url;
@@ -20,6 +30,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       summaryDiv.textContent = "";
     }
 
+    // Update model selection display
+    const modelSelectedSpan = document.querySelector('#model-selected span');
+    if (llm === 'openai') {
+      modelSelectedSpan.textContent = `OpenAI ${model}`;
+    } else if (llm === 'claude') {
+      modelSelectedSpan.textContent = `Claude ${model}`;
+    } else if (llm === 'deepseek') {
+      modelSelectedSpan.textContent = `DeepSeek ${model}`;
+    } else {
+      modelSelectedSpan.textContent = 'Unknown model';
+    }
+
     summarizeBtn.addEventListener("click", async () => {
       summaryDiv.textContent = "Summarizing...";
       cachedMsgDiv.textContent = "";
@@ -31,16 +53,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       const pageText = results[0].result || "";
 
-      // Get user settings from storage
-      const {
-        llm,
-        model,
-        openAiKey,
-        claudeKey,
-        deepSeekKey,
-        summarizationPrompt
-      } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
-
       // Set default summarization prompt if empty
       if (!summarizationPrompt) {
         finalPrompt = "Summarize the following text by first telling me what this text is about and then bullet points of the key points.";
@@ -49,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // Append markdown format instruction
-      finalPrompt += " Summary MUST be returned in valid HTML5 format";
+      finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
 
       // Determine which key to use
       let usedKey;

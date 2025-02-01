@@ -36,7 +36,7 @@ async function loadSettings() {
     'llm', 'model', 'openAiKey', 'claudeKey', 'deepSeekKey', 'summarizationPrompt'
   ]);
 
-  const DEFAULT_LLM = LlmDeepseek
+  const DEFAULT_LLM = LlmOpenAi // can be changed to DeepSeek/Claude
   // Set LLM dropdown
   const llmSelect = document.getElementById('llmSelect');
   llmSelect.value = llm || DEFAULT_LLM;
