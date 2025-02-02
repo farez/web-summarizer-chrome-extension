@@ -6,7 +6,8 @@
     "permissions": ["storage", "activeTab", "scripting"],
     "host_permissions": [
         "https://api.openai.com/*",
-        "https://api.anthropic.com/*"
+        "https://api.anthropic.com/*",
+        "https://api.deepseek.com/*"
     ],
     "options_page": "options.html",
     "action": {
@@ -17,5 +18,4 @@
       "48": "icon48.png",
       "128": "icon128.png"
     }
-  }
-
+}

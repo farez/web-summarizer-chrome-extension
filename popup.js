@@ -2,6 +2,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     const summaryDiv = document.getElementById("summary");
     const cachedMsgDiv = document.getElementById("cachedMsg");
     const summarizeBtn = document.getElementById("summarizeBtn");
+    const errorMessages = document.getElementById("error-messages");
+
+    // Get user settings from storage
+    const {
+      llm,
+      model,
+      openAiKey,
+      claudeKey,
+      deepSeekKey,
+      summarizationPrompt
+    } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
+
+    // Disable summarize button if API key is not set for selected LLM
+    if ((llm === 'openai' && !openAiKey) || 
+        (llm === 'claude' && !claudeKey) ||
+        (llm === 'deepseek' && !deepSeekKey)) {
+      summarizeBtn.disabled = true;
+      errorMessages.textContent = `Please set ${llm} API key in options first`;
+    }
 
     // Get the current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -20,6 +39,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       summaryDiv.textContent = "";
     }
 
+    // Update model selection display
+    const modelSelectedSpan = document.querySelector('#model-selected span');
+    if (llm === 'openai') {
+      modelSelectedSpan.textContent = `OpenAI ${model}`;
+    } else if (llm === 'claude') {
+      modelSelectedSpan.textContent = `Claude ${model}`;
+    } else if (llm === 'deepseek') {
+      modelSelectedSpan.textContent = `DeepSeek ${model}`;
+    } else {
+      modelSelectedSpan.textContent = 'Unknown model';
+    }
+
     summarizeBtn.addEventListener("click", async () => {
       summaryDiv.textContent = "Summarizing...";
       cachedMsgDiv.textContent = "";
@@ -31,15 +62,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       const pageText = results[0].result || "";
 
-      // Get user settings from storage
-      const {
-        llm,
-        model,
-        openAiKey,
-        claudeKey,
-        summarizationPrompt
-      } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "summarizationPrompt"]);
-
       // Set default summarization prompt if empty
       if (!summarizationPrompt) {
         finalPrompt = "Summarize the following text by first telling me what this text is about and then bullet points of the key points.";
@@ -48,12 +70,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // Append markdown format instruction
-      finalPrompt += " Return the summary in Markdown format.";
+      finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
 
       // Determine which key to use
       let usedKey;
       if (llm === "claude") {
         usedKey = claudeKey;
+      } else if (llm === "deepseek") {
+        usedKey = deepSeekKey;
       } else {
         usedKey = openAiKey;
       }
@@ -89,10 +113,32 @@ document.addEventListener("DOMContentLoaded", async () => {
               temperature: 0.7
             })
           });
-
           if (!response.ok) throw new Error(`Claude HTTP error! status: ${response.status}`);
           const data = await response.json();
           rawSummary = data.content[0].text || "No summary available.";
+        } else if (llm === 'deepseek') {
+          const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            mode: "cors", // explicitly enable cors, not the most secure option
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${usedKey}`,
+              // "Access-Control-Allow-Origin": "*",
+            },
+            body: JSON.stringify({
+              model: model || "deepseek-chat", // chat is v3
+              messages: [
+                { role: "system", content: "You are a helpful assistant that summarizes web pages into a concise and informative summary." },
+                { role: "user", content: finalPrompt },
+                { role: "user", content: pageText }
+              ],
+              temperature: 0.7,
+            })
+          })
+
+          if (!response.ok) throw new Error(`DeepSeek HTTP error! status: ${response.status}`);
+          const data = await response.json();
+          rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
         } else {
         // Call OpenAI
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -116,7 +162,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
         // Render and cache the new summary
-        summaryDiv.innerHTML = marked.parse(rawSummary);
+        try {
+          // const parsedHtml = marked.parse(rawSummary);
+          console.info('parsed html >> ', rawSummary);
+          summaryDiv.innerHTML = rawSummary;
+        } catch (error) {
+          console.error('Error parsing markdown:', error);
+          summaryDiv.textContent = `there was an error with markdown parsing`; // Fallback to plain text if markdown parsing fails
+        }
 
         // Remove any old entry for this URL
         const idx = summaries.findIndex(s => s.url === currentUrl);
