@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
 
     // Disable summarize button if API key is not set for selected LLM
-    if ((llm === 'openai' && !openAiKey) || 
+    if ((llm === 'openai' && !openAiKey) ||
         (llm === 'claude' && !claudeKey) ||
         (llm === 'deepseek' && !deepSeekKey)) {
       summarizeBtn.disabled = true;
@@ -70,7 +70,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // Append markdown format instruction
-      finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
+      // finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
+      forceHtmlPrompt = " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
 
       // Determine which key to use
       let usedKey;
@@ -103,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
             body: JSON.stringify({
               max_tokens: 500,
-              system: "You are a helpful assistant that summarizes web pages into a concise and informative summary.",
+              system: "You are a helpful assistant that summarizes web pages into a concise and informative summary." + forceHtmlPrompt,
               messages: [
                 { role: "user", content: claudePrompt },
                 { role: "assistant", content: "Page summary: <summary>" }
@@ -128,7 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             body: JSON.stringify({
               model: model || "deepseek-chat", // chat is v3
               messages: [
-                { role: "system", content: "You are a helpful assistant that summarizes web pages into a concise and informative summary." },
+                { role: "system", content: "You are a helpful assistant that summarizes web pages into a concise and informative summary." + forceHtmlPrompt },
                 { role: "user", content: finalPrompt },
                 { role: "user", content: pageText }
               ],
@@ -140,26 +141,26 @@ document.addEventListener("DOMContentLoaded", async () => {
           const data = await response.json();
           rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
         } else {
-        // Call OpenAI
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${usedKey}`
-          },
-          body: JSON.stringify({
-            model: model || "gpt-4o-mini",
-            messages: [
-              { role: "system", content: finalPrompt },
-              { role: "user", content: pageText }
-            ]
-          })
-        });
+          // Call OpenAI
+          const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${usedKey}`
+            },
+            body: JSON.stringify({
+              model: model || "gpt-4o-mini",
+              messages: [
+                { role: "system", content: finalPrompt + forceHtmlPrompt },
+                { role: "user", content: pageText }
+              ]
+            })
+          });
 
-        if (!response.ok) throw new Error(`OpenAI HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
-      }
+          if (!response.ok) throw new Error(`OpenAI HTTP error! status: ${response.status}`);
+          const data = await response.json();
+          rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
+        }
 
         // Render and cache the new summary
         try {
