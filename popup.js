@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Show cached summary if present
     if (existing) {
       cachedMsgDiv.textContent = "Showing previously generated summary";
-      summaryDiv.innerHTML = marked.parse(existing.summary);
+      summaryDiv.innerHTML = existing.summary;
     } else {
       cachedMsgDiv.textContent = "No cached summary for this page.";
       summaryDiv.textContent = "";
@@ -42,11 +42,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Update model selection display
     const modelSelectedSpan = document.querySelector('#model-selected span');
     if (llm === 'openai') {
-      modelSelectedSpan.textContent = `OpenAI ${model}`;
+      modelSelectedSpan.textContent = `OpenAI / ${model}`;
     } else if (llm === 'claude') {
-      modelSelectedSpan.textContent = `Claude ${model}`;
+      modelSelectedSpan.textContent = `Claude / ${model}`;
     } else if (llm === 'deepseek') {
-      modelSelectedSpan.textContent = `DeepSeek ${model}`;
+      modelSelectedSpan.textContent = `DeepSeek / ${model}`;
     } else {
       modelSelectedSpan.textContent = 'Unknown model';
     }
@@ -164,7 +164,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Render and cache the new summary
         try {
-          // const parsedHtml = marked.parse(rawSummary);
           console.info('parsed html >> ', rawSummary);
           summaryDiv.innerHTML = rawSummary;
         } catch (error) {

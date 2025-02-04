@@ -7,9 +7,18 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         line-height: 1.5;
         margin: 0;
-        padding: 10px;
         width: 640px;
         font-size: 16px;
+      }
+      header {
+        padding: 5px 10px;
+        background-color: #fbfacc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      main {
+        padding: 10px;
       }
       #summary {
         margin-top: 10px;
@@ -19,13 +28,11 @@
         padding: 2px 4px;
       }
       #cachedMsg {
-        margin-top: 10px;
         font-size: 10px;
         color: #555;
         text-align: center;
       }
       #model-selected {
-        margin-top: 10px;
         font-size: 10px;
         color: #555;
         text-align: left;
@@ -56,11 +63,17 @@
     </style>
   </head>
   <body>
-    <div id="cachedMsg"></div>
-    <p id="model-selected">model: <span>???</span></p>
-    <button id="summarizeBtn">Summarize this page</button>
-    <div id="error-messages"></div>
-    <div id="summary"></div>
+    <header>
+        <div id="model-selected">Model: <span>???</span></div>
+        <div id="cachedMsg"></div>
+    </header>
+    <main>
+        <button id="summarizeBtn">Summarize this page</button>
+        <div id="error-messages"></div>
+        <div id="summary"></div>
+    </main>
+
+
 
     <!-- Include marked.js for Markdown support -->
     <script src="marked.min.js"></script>
