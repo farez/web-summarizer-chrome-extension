@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cachedMsgDiv = document.getElementById("cachedMsg");
     const summarizeBtn = document.getElementById("summarizeBtn");
     const errorMessages = document.getElementById("error-messages");
+    const togglePromptLink = document.getElementById('togglePrompt');
+    const customPromptTextarea = document.getElementById('customPrompt');
 
     // Get user settings from storage
     const {
@@ -51,6 +53,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       modelSelectedSpan.textContent = 'Unknown model';
     }
 
+    // Add this after getting settings from storage
+    customPromptTextarea.value = summarizationPrompt || "Summarize the following text:";
+
+    // Add this event listener after DOMContentLoaded
+    togglePromptLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        customPromptTextarea.style.display = customPromptTextarea.style.display === 'none' ? 'block' : 'none';
+    });
+
     summarizeBtn.addEventListener("click", async () => {
       summaryDiv.textContent = "Summarizing...";
       cachedMsgDiv.textContent = "";
@@ -62,12 +73,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       const pageText = results[0].result || "";
 
-      // Set default summarization prompt if empty
-      if (!summarizationPrompt) {
-        finalPrompt = "Summarize the following text by first telling me what this text is about and then bullet points of the key points.";
-      } else {
-        finalPrompt = summarizationPrompt;
-      }
+      // Replace the prompt setting logic with:
+      const finalPrompt = customPromptTextarea.value.trim() ||
+          "Summarize the following text by first telling me what this text is about and then bullet points of the key points.";
 
       // Append markdown format instruction
       // finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
