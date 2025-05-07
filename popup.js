@@ -96,6 +96,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
+      console.log('finalPrompt >> ', finalPrompt);
+
       try {
         let rawSummary;
 
@@ -150,7 +152,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
         } else {
           // Call OpenAI
-          const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          const response = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -158,21 +160,41 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
             body: JSON.stringify({
               model: model || "gpt-4o-mini",
-              messages: [
-                { role: "system", content: finalPrompt + forceHtmlPrompt },
-                { role: "user", content: pageText }
-              ]
+              input: finalPrompt + forceHtmlPrompt + pageText
             })
           });
 
           if (!response.ok) throw new Error(`OpenAI HTTP error! status: ${response.status}`);
           const data = await response.json();
-          rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
+
+        // data.output format example:
+        // [
+        //     {
+        //         "id": "msg_67b73f697ba4819183a15cc17d011509",
+        //         "type": "message",
+        //         "role": "assistant",
+        //         "content": [
+        //             {
+        //                 "type": "output_text",
+        //                 "text": "Under the soft glow of the moon, Luna the unicorn danced through fields of twinkling stardust, leaving trails of dreams for every child asleep.",
+        //                 "annotations": []
+        //             }
+        //         ]
+        //     }
+        // ]
+
+          rawSummary = data.output
+            .filter(item => item.type === 'message' && item.role === 'assistant')
+            .flatMap(item => item.content)
+            .filter(content => content.type === 'output_text')
+            .map(content => content.text)
+            .join('\n')
+            .trim() || "No summary available.";
+
         }
 
         // Render and cache the new summary
         try {
-          console.info('parsed html >> ', rawSummary);
           summaryDiv.innerHTML = rawSummary;
         } catch (error) {
           console.error('Error parsing markdown:', error);
