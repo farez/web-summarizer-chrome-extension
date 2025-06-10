@@ -11,14 +11,13 @@
 
 ### options.html & options.js  
 - Extension settings page
-- Manages API keys for different LLM providers
-- Sets default LLM provider and model selection
+- Manages API keys for different LLM providers (OpenAI, Claude, DeepSeek)
 - Configures default summarization prompt
+- **Note**: LLM and model selection removed from options page since this is now handled exclusively in the popup
 
 ## Key Features
 
 ### Model Selection
-- **Settings Level**: Users set a default LLM (OpenAI/Claude/DeepSeek) and model in options
 - **Popup Level**: Users can select any model from any LLM provider, which becomes the new default
 - **Persistent Default**: Selected model is automatically saved and becomes the default for all future summarizations
 - **Universal Model Dropdown**: Shows all models from all LLM providers grouped by provider
@@ -37,5 +36,5 @@
 5. Summary cached in chrome.storage.local with URL key
 
 ## Storage
-- **chrome.storage.sync**: User settings (API keys, default LLM/model, prompt), persistent default model selection
+- **chrome.storage.sync**: User settings (API keys, prompt), persistent default model selection
 - **chrome.storage.local**: Cached summaries (max 10, FIFO) 

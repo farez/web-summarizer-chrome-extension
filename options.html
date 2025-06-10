@@ -54,22 +54,6 @@
   <body>
     <h1>Page Summarizer Settings</h1>
 
-    <label>
-      LLM:
-      <select id="llmSelect">
-        <option value="openai" selected>OpenAI</option>
-        <option value="claude">Claude</option>
-        <option value="deepseek">DeepSeek</option>
-      </select>
-    </label>
-
-    <label>
-      Model (input/output cost per 1M tokens, updated 7 May 2025):
-      <select id="modelSelect">
-        <!-- For OpenAI, Claude, or DeepSeek, we populate dynamically in options.js -->
-      </select>
-    </label>
-
     <label id="openai-secret-input">
       OpenAI API Key:
       <input type="text" id="openAiKey" placeholder="OpenAI API Key" />
