@@ -43,8 +43,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Populate model override dropdown based on current LLM
     function populateModelOverride() {
-        // Clear existing options except the default
-        modelOverrideSelect.innerHTML = '<option value="">Use settings default</option>';
+        // Clear existing options
+        modelOverrideSelect.innerHTML = '';
 
         // Add all models from all LLMs, grouped by provider
         Object.keys(MODEL_OPTIONS).forEach(llmKey => {
@@ -63,8 +63,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Get the default model from storage or use fallback
+    const { defaultLlm, defaultModel } = await chrome.storage.sync.get(['defaultLlm', 'defaultModel']);
+    const currentLlm = defaultLlm || 'openai';
+    const currentModel = defaultModel || 'o4-mini';
+
     // Populate the model dropdown
     populateModelOverride();
+
+    // Set the current default as selected
+    modelOverrideSelect.value = `${currentLlm}:${currentModel}`;
+
+    // Save new default when model selection changes
+    modelOverrideSelect.addEventListener('change', async (e) => {
+        const selectedValue = e.target.value;
+        if (selectedValue) {
+            const [selectedLlm, selectedModel] = selectedValue.split(':');
+            await chrome.storage.sync.set({
+                defaultLlm: selectedLlm,
+                defaultModel: selectedModel
+            });
+
+            // Update the header display
+            const modelSelectedSpan = document.querySelector('#model-selected span');
+            if (selectedLlm === 'openai') {
+              modelSelectedSpan.textContent = `OpenAI / ${selectedModel}`;
+            } else if (selectedLlm === 'claude') {
+              modelSelectedSpan.textContent = `Claude / ${selectedModel}`;
+            } else if (selectedLlm === 'deepseek') {
+              modelSelectedSpan.textContent = `DeepSeek / ${selectedModel}`;
+            }
+        }
+    });
 
     // Check API key availability
     const missingKeys = [];
@@ -100,12 +130,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Update model selection display
     const modelSelectedSpan = document.querySelector('#model-selected span');
-    if (llm === 'openai') {
-      modelSelectedSpan.textContent = `OpenAI / ${model}`;
-    } else if (llm === 'claude') {
-      modelSelectedSpan.textContent = `Claude / ${model}`;
-    } else if (llm === 'deepseek') {
-      modelSelectedSpan.textContent = `DeepSeek / ${model}`;
+    if (currentLlm === 'openai') {
+      modelSelectedSpan.textContent = `OpenAI / ${currentModel}`;
+    } else if (currentLlm === 'claude') {
+      modelSelectedSpan.textContent = `Claude / ${currentModel}`;
+    } else if (currentLlm === 'deepseek') {
+      modelSelectedSpan.textContent = `DeepSeek / ${currentModel}`;
     } else {
       modelSelectedSpan.textContent = 'Unknown model';
     }
@@ -138,16 +168,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       // finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
       forceHtmlPrompt = " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
 
-      // Get the model to use - override takes precedence over settings
-      const modelOverride = modelOverrideSelect.value;
-      let llmToUse = llm;
-      let modelToUse = model;
-
-      if (modelOverride) {
-        const [overrideLlm, overrideModel] = modelOverride.split(':');
-        llmToUse = overrideLlm;
-        modelToUse = overrideModel;
-      }
+      // Get the model to use - always use the current selection from dropdown
+      const selectedValue = modelOverrideSelect.value;
+      const [llmToUse, modelToUse] = selectedValue.split(':');
 
       // Determine which key to use based on the LLM
       let usedKey;

@@ -19,22 +19,23 @@
 
 ### Model Selection
 - **Settings Level**: Users set a default LLM (OpenAI/Claude/DeepSeek) and model in options
-- **Popup Level**: Users can override the model selection per-summary using the dropdown in the popup
-- **Universal Model Dropdown**: Shows all models from all LLM providers grouped by provider, allowing users to switch both model and LLM provider directly from the popup
-- Model options are dynamically populated with all available models organized by provider (OpenAI, Claude, DeepSeek)
+- **Popup Level**: Users can select any model from any LLM provider, which becomes the new default
+- **Persistent Default**: Selected model is automatically saved and becomes the default for all future summarizations
+- **Universal Model Dropdown**: Shows all models from all LLM providers grouped by provider
+- **Fallback Default**: If no saved default found, uses OpenAI o4-mini as the initial default
 
 ### Available Models
-- **OpenAI**: GPT-4o Mini, o4-mini, o3-mini, GPT-4o, o3
+- **OpenAI**: GPT-4o Mini, GPT-4.1 Mini, GPT-4.1 Nano, GPT-4o, GPT-4.1, o3, o3-mini, o4-mini
 - **Claude**: Haiku 3.5, Sonnet 3.7, Sonnet 4, Opus 4  
 - **DeepSeek**: V3, R1
 
 ### Data Flow
-1. User opens popup → loads settings from chrome.storage.sync
-2. Popup populates model override dropdown with all models from all LLMs grouped by provider
-3. User optionally selects different model (which may be from a different LLM) or uses default
-4. On summarize → parses selected override to determine LLM and model, uses appropriate API key, falls back to settings if no override
+1. User opens popup → loads default model from chrome.storage.sync (or uses o4-mini fallback)
+2. Popup shows current default model as selected in dropdown
+3. User can change model selection → automatically saves as new default
+4. On summarize → uses currently selected model from dropdown
 5. Summary cached in chrome.storage.local with URL key
 
 ## Storage
-- **chrome.storage.sync**: User settings (API keys, default LLM/model, prompt)
+- **chrome.storage.sync**: User settings (API keys, default LLM/model, prompt), persistent default model selection
 - **chrome.storage.local**: Cached summaries (max 10, FIFO) 
