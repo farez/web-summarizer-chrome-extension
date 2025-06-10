@@ -1,15 +1,17 @@
 // Model presets for each LLM
 const MODEL_OPTIONS = {
   openai: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini (default). In:$0.15. Out:$0.60.' },
-    { value: 'o4-mini', label: '04-mini. In:$1.10. Out:$4.40.' },
-    { value: 'o3-mini', label: 'o3-mini. In:$1.10. Out:$4.40.' },
-    { value: 'gpt-4o', label: 'GPT-4o. In:$2.50. Out:$10.00.' },
-    { value: 'o3', label: 'o3. In:$10.00. Out:$40.00.' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini (default)' },
+    { value: 'o4-mini', label: '04-mini' },
+    { value: 'o3-mini', label: 'o3-mini' },
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'o3', label: 'o3' },
   ],
   claude: [
-    { value: 'claude-3-5-haiku-latest', label: 'Claude 3.5 Haiku (default)' },
-    { value: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet' },
+    { value: 'claude-3-5-haiku-latest', label: 'Claude Haiku 3.5' },
+    { value: 'claude-3-7-sonnet-latest', label: 'Claude Sonnet 3.7' },
+    { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+    { value: 'claude-opus-4-20250514', label: 'Claude Opus 4' },
   ],
   deepseek: [
     { value: 'deepseek-chat', label: 'Deepseek V3' },

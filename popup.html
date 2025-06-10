@@ -70,6 +70,12 @@
     </header>
     <main>
         <div id="prompt-controls" style="text-align: center;">
+            <div style="margin-bottom: 8px;">
+                <label for="modelOverride" style="font-size: 12px; color: #666; margin-right: 5px;">Model:</label>
+                <select id="modelOverride" style="font-size: 12px; padding: 2px 4px; border: 1px solid #ddd; border-radius: 3px;">
+                    <option value="">Use settings default</option>
+                </select>
+            </div>
             <a href="#" id="togglePrompt" style="font-size: 12px; color: #666; margin-bottom: 5px;">Instructions for Summarizer</a>
             <textarea id="customPrompt" rows="5" style="display: none; width: 95%; margin-top: 5px; margin-bottom: 5px; font-size: 12px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;"></textarea>
         </div>

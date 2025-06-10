@@ -1,3 +1,27 @@
+// Model presets for each LLM (copied from options.js)
+const MODEL_OPTIONS = {
+  openai: [
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
+    { value: 'gpt-4.1-nano', label: 'GPT-4.1 Nano' },
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4.1', label: 'GPT-4.1' },
+    { value: 'o3', label: 'o3' },
+    { value: 'o3-mini', label: 'o3-mini' },
+    { value: 'o4-mini', label: 'o4-mini' },
+  ],
+  claude: [
+    { value: 'claude-3-5-haiku-latest', label: 'Haiku 3.5' },
+    { value: 'claude-3-7-sonnet-latest', label: 'Sonnet 3.7' },
+    { value: 'claude-sonnet-4-20250514', label: 'Sonnet 4' },
+    { value: 'claude-opus-4-20250514', label: 'Opus 4' },
+  ],
+  deepseek: [
+    { value: 'deepseek-chat', label: 'V3' },
+    { value: 'deepseek-reasoner', label: 'R1' },
+  ]
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
     const summaryDiv = document.getElementById("summary");
     const cachedMsgDiv = document.getElementById("cachedMsg");
@@ -5,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const errorMessages = document.getElementById("error-messages");
     const togglePromptLink = document.getElementById('togglePrompt');
     const customPromptTextarea = document.getElementById('customPrompt');
+    const modelOverrideSelect = document.getElementById('modelOverride');
 
     // Get user settings from storage
     const {
@@ -16,12 +41,44 @@ document.addEventListener("DOMContentLoaded", async () => {
       summarizationPrompt
     } = await chrome.storage.sync.get(["llm", "model", "openAiKey", "claudeKey", "deepSeekKey", "summarizationPrompt"]);
 
-    // Disable summarize button if API key is not set for selected LLM
-    if ((llm === 'openai' && !openAiKey) ||
-        (llm === 'claude' && !claudeKey) ||
-        (llm === 'deepseek' && !deepSeekKey)) {
+    // Populate model override dropdown based on current LLM
+    function populateModelOverride() {
+        // Clear existing options except the default
+        modelOverrideSelect.innerHTML = '<option value="">Use settings default</option>';
+
+        // Add all models from all LLMs, grouped by provider
+        Object.keys(MODEL_OPTIONS).forEach(llmKey => {
+            const llmLabel = llmKey.charAt(0).toUpperCase() + llmKey.slice(1);
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = llmLabel;
+
+            MODEL_OPTIONS[llmKey].forEach((m) => {
+                const opt = document.createElement('option');
+                opt.value = `${llmKey}:${m.value}`;
+                opt.textContent = m.label;
+                optgroup.appendChild(opt);
+            });
+
+            modelOverrideSelect.appendChild(optgroup);
+        });
+    }
+
+    // Populate the model dropdown
+    populateModelOverride();
+
+    // Check API key availability
+    const missingKeys = [];
+    if (!openAiKey) missingKeys.push('OpenAI');
+    if (!claudeKey) missingKeys.push('Claude');
+    if (!deepSeekKey) missingKeys.push('DeepSeek');
+
+    if (missingKeys.length === 3) {
+      // No API keys set at all
       summarizeBtn.disabled = true;
-      errorMessages.textContent = `Please set ${llm} API key in options first`;
+      errorMessages.textContent = 'Please set at least one API key in options first';
+    } else if (missingKeys.length > 0) {
+      // Some keys missing, show informational warning
+    //   errorMessages.textContent = `Missing API keys: ${missingKeys.join(', ')}. Set keys in options to use those models.`;
     }
 
     // Get the current tab
@@ -81,28 +138,42 @@ document.addEventListener("DOMContentLoaded", async () => {
       // finalPrompt += " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
       forceHtmlPrompt = " Summary MUST be returned in valid HTML5 format. The output should not have ```html opening and closing ticks";
 
-      // Determine which key to use
+      // Get the model to use - override takes precedence over settings
+      const modelOverride = modelOverrideSelect.value;
+      let llmToUse = llm;
+      let modelToUse = model;
+
+      if (modelOverride) {
+        const [overrideLlm, overrideModel] = modelOverride.split(':');
+        llmToUse = overrideLlm;
+        modelToUse = overrideModel;
+      }
+
+      // Determine which key to use based on the LLM
       let usedKey;
-      if (llm === "claude") {
+      if (llmToUse === "claude") {
         usedKey = claudeKey;
-      } else if (llm === "deepseek") {
+      } else if (llmToUse === "deepseek") {
         usedKey = deepSeekKey;
       } else {
         usedKey = openAiKey;
       }
 
       if (!usedKey) {
-        summaryDiv.textContent = `Please set your ${llm} API key in extension options.`;
+        summaryDiv.textContent = `Please set your ${llmToUse} API key in extension options.`;
         return;
       }
 
+      console.log('modelToUse >> ', modelToUse);
+      console.log('llmToUse >> ', llmToUse);
       console.log('finalPrompt >> ', finalPrompt);
 
       try {
         let rawSummary;
 
-        if (llm === "claude") {
-          // --- Call Claude (Anthropic) ---
+        if (llmToUse === "claude") {
+
+          // Call Claude API
           const claudePrompt = `Human: ${finalPrompt}\n${pageText}\n\nAssistant:`;
           const response = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
@@ -120,14 +191,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 { role: "assistant", content: "Page summary: <summary>" }
               ],
               stop_sequences: ["</summary>"],
-              model: model || "claude-3-5-haiku-latest",
+              model: modelToUse || "claude-3-5-haiku-latest",
               temperature: 0.7
             })
           });
           if (!response.ok) throw new Error(`Claude HTTP error! status: ${response.status}`);
           const data = await response.json();
           rawSummary = data.content[0].text || "No summary available.";
-        } else if (llm === 'deepseek') {
+        } else if (llmToUse === 'deepseek') {
+
+          // Call Deepseek API
           const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
             method: "POST",
             mode: "cors", // explicitly enable cors, not the most secure option
@@ -137,9 +210,9 @@ document.addEventListener("DOMContentLoaded", async () => {
               // "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify({
-              model: model || "deepseek-chat", // chat is v3
+              model: modelToUse || "deepseek-chat", // chat is v3
               messages: [
-                { role: "system", content: "You are a helpful assistant that summarizes web pages into a concise and informative summary." + forceHtmlPrompt },
+                { role: "system", content: forceHtmlPrompt },
                 { role: "user", content: finalPrompt },
                 { role: "user", content: pageText }
               ],
@@ -151,7 +224,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           const data = await response.json();
           rawSummary = data.choices?.[0]?.message?.content?.trim() || "No summary available.";
         } else {
-          // Call OpenAI
+
+
+          // Call OpenAI API
           const response = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: {
@@ -159,29 +234,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               "Authorization": `Bearer ${usedKey}`
             },
             body: JSON.stringify({
-              model: model || "gpt-4o-mini",
+              model: modelToUse || "gpt-4o-mini",
               input: finalPrompt + forceHtmlPrompt + pageText
             })
           });
 
           if (!response.ok) throw new Error(`OpenAI HTTP error! status: ${response.status}`);
           const data = await response.json();
-
-        // data.output format example:
-        // [
-        //     {
-        //         "id": "msg_67b73f697ba4819183a15cc17d011509",
-        //         "type": "message",
-        //         "role": "assistant",
-        //         "content": [
-        //             {
-        //                 "type": "output_text",
-        //                 "text": "Under the soft glow of the moon, Luna the unicorn danced through fields of twinkling stardust, leaving trails of dreams for every child asleep.",
-        //                 "annotations": []
-        //             }
-        //         ]
-        //     }
-        // ]
 
           rawSummary = data.output
             .filter(item => item.type === 'message' && item.role === 'assistant')
