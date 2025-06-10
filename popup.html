@@ -25,7 +25,7 @@
       }
       pre, code {
         background-color: #f4f4f4;
-        padding: 2px 4px;
+        padding: 4px 8px;
       }
       #cachedMsg {
         font-size: 10px;
@@ -55,6 +55,36 @@
         border-color: #ccc;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       }
+      .copy-container {
+        display: none;
+        align-items: center;
+        justify-content: flex-end;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        width: 5em;
+        margin-left: auto;
+        margin-right: 0;
+      }
+      .copy-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 3px;
+        transition: background-color 0.2s ease;
+        font-size: 14px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .copy-icon:hover {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      .copy-icon.copied {
+        color: #28a745;
+      }
 
     </style>
   </head>
@@ -75,6 +105,12 @@
         </div>
         <button id="summarizeBtn">Summarize this page</button>
         <div id="error-messages"></div>
+        <hr>
+        <div class="copy-container" id="copyContainer">
+            <button class="copy-icon" id="copyBtn" title="Copy summary to clipboard">
+                <span id="copyText">Copy</span>
+            </button>
+        </div>
         <div id="summary"></div>
     </main>
 

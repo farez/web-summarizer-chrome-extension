@@ -30,6 +30,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     const togglePromptLink = document.getElementById('togglePrompt');
     const customPromptTextarea = document.getElementById('customPrompt');
     const modelOverrideSelect = document.getElementById('modelOverride');
+    const copyContainer = document.getElementById('copyContainer');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyIcon = document.getElementById('copyIcon');
+    const copyText = document.getElementById('copyText');
+
+    // Copy functionality
+    function showCopyButton() {
+        copyContainer.style.display = 'flex';
+    }
+
+    function hideCopyButton() {
+        copyContainer.style.display = 'none';
+    }
+
+    function resetCopyButton() {
+        copyBtn.classList.remove('copied');
+        copyText.textContent = 'Copy';
+    }
+
+    function showCopySuccess() {
+        copyBtn.classList.add('copied');
+        copyText.textContent = 'Copied';
+        setTimeout(resetCopyButton, 2000);
+    }
+
+    copyBtn.addEventListener('click', async () => {
+        try {
+            // Get the text content of the summary, stripping HTML tags
+            const summaryText = summaryDiv.innerText || summaryDiv.textContent || '';
+            await navigator.clipboard.writeText(summaryText);
+            showCopySuccess();
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            // Fallback for older browsers or if clipboard API fails
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = summaryDiv.innerText || summaryDiv.textContent || '';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopySuccess();
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed: ', fallbackErr);
+            }
+        }
+    });
 
     // Get user settings from storage
     const {
@@ -113,9 +160,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (existing) {
       cachedMsgDiv.textContent = "Showing previously generated summary";
       summaryDiv.innerHTML = existing.summary;
+      showCopyButton();
     } else {
       cachedMsgDiv.textContent = "No cached summary for this page.";
       summaryDiv.textContent = "";
+      hideCopyButton();
     }
 
     // Add this after getting settings from storage
@@ -130,6 +179,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     summarizeBtn.addEventListener("click", async () => {
       summaryDiv.textContent = "Summarizing...";
       cachedMsgDiv.textContent = "";
+      hideCopyButton();
 
       // Get the page text
       const results = await chrome.scripting.executeScript({
@@ -256,9 +306,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Render and cache the new summary
         try {
           summaryDiv.innerHTML = rawSummary;
+          showCopyButton();
         } catch (error) {
           console.error('Error parsing markdown:', error);
           summaryDiv.textContent = `there was an error with markdown parsing`; // Fallback to plain text if markdown parsing fails
+          hideCopyButton();
         }
 
         // Remove any old entry for this URL
@@ -273,6 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await chrome.storage.local.set({ summaries });
       } catch (error) {
         summaryDiv.textContent = `Error: ${error.message}`;
+        hideCopyButton();
       }
     });
   });
