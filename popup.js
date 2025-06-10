@@ -83,16 +83,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 defaultLlm: selectedLlm,
                 defaultModel: selectedModel
             });
-
-            // Update the header display
-            const modelSelectedSpan = document.querySelector('#model-selected span');
-            if (selectedLlm === 'openai') {
-              modelSelectedSpan.textContent = `OpenAI / ${selectedModel}`;
-            } else if (selectedLlm === 'claude') {
-              modelSelectedSpan.textContent = `Claude / ${selectedModel}`;
-            } else if (selectedLlm === 'deepseek') {
-              modelSelectedSpan.textContent = `DeepSeek / ${selectedModel}`;
-            }
         }
     });
 
@@ -126,18 +116,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       cachedMsgDiv.textContent = "No cached summary for this page.";
       summaryDiv.textContent = "";
-    }
-
-    // Update model selection display
-    const modelSelectedSpan = document.querySelector('#model-selected span');
-    if (currentLlm === 'openai') {
-      modelSelectedSpan.textContent = `OpenAI / ${currentModel}`;
-    } else if (currentLlm === 'claude') {
-      modelSelectedSpan.textContent = `Claude / ${currentModel}`;
-    } else if (currentLlm === 'deepseek') {
-      modelSelectedSpan.textContent = `DeepSeek / ${currentModel}`;
-    } else {
-      modelSelectedSpan.textContent = 'Unknown model';
     }
 
     // Add this after getting settings from storage
